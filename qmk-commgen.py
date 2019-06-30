@@ -1,6 +1,11 @@
 import qmk_kc
 import re
 from tkinter import Tk
+import pusheen
+
+#print(pusheen.widthlist)
+widthlist = pusheen.widthlist
+#input()
 r=Tk()
 r.withdraw()
 comb=[]             #combined layer ready for output
@@ -57,6 +62,7 @@ print('Successfully imported layers')
 lyrcount=layers
 for layer in range(0,len(KClayers)):
     lyrcount-=1
+    k = 0
     for num in range(0,len(KClayers[layer])):
         #define current layer
         crtln=(KClayers[layer][num])
@@ -66,8 +72,13 @@ for layer in range(0,len(KClayers)):
         colm2=colm-1
         width.append(colm2)
         crtln=' * ,'+crtln
+
         #run it through my module see qmk_kc.py
         fixed=qmk_kc.replkc(crtln,notdef)
+
+        print(fixed)
+        input('meow')
+        k+=1
         comb.append(fixed)
         lines=len(comb)
     file.write(nl)
@@ -75,6 +86,8 @@ for layer in range(0,len(KClayers)):
     print(f'/* {names[layer]}',file=file)
     print(f' * ┌{fill*width[0]}──────┐', file=file)
     for num in range(0,lines):
+        print(comb[num])
+        input()
         file.write(comb[num]+nl)
         if lines>1 and num<(lines-1):
             print(f' * ├{fill2*width[num]}──────┤', file=file)
