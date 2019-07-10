@@ -1,5 +1,6 @@
 import collections
 import json
+import re
 
 index = 0
 
@@ -59,12 +60,19 @@ def process_keymaps(keymap_file='keymap.c', info_file='info.json'):
     # {"LAYOUT_planck_mit":{{"layout":[{w, x, y}]}}, "LAYOUT_planck_grid":{"layout":[{w, x, y}]}}
     #ooglay
     with open(keymap_file, 'r') as keymap:
+      line_index = 0
       keylines = keymap.readlines()
       for line in keylines:
         #look for LAYOUT( or LAYOUT_*(
         #\[(.*?)\] -> captures stuff in brackets
         #\[(.*?)\](\s?=\s?)(LAYOUT) -> captures anything in ["name of layer"] = LAYOUT format
-        #
+        #\[(.*?)\](\s?=\s?)(LAYOUT)(_*?\w*\({1}?) captures anything including everything past LAYOUT and the first parens
+        #this captures the start of any LAYOUT array but
+        if re.match('\[(.*?)\](\s?=\s?)(LAYOUT)(_*?\w*\({1}?)', line):
+          #look for the closing parentheses here - scan string, not regex
+          
+          pass
+        elif 
         pass
     pass
   return layouts
