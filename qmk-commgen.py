@@ -46,9 +46,11 @@ for line in inpList:
     line=line.replace(' ','')
     
     if not layoutname:
-        match = re.search('\[(.*?)\](\s?=\s?)(LAYOUT_*?\w*\({1}?)', line)
+        match = re.search('(LAYOUT_*?\w*\({1}?)', line)
         if match:
-            layoutname = match.group(3)[:-1] #group 3 will contain LAYOUT_blahblah( string
+            layoutname = match.group(1)[:-1] #group 3 will contain LAYOUT_blahblah( string
+        #try looking for just LAYOUT(?
+
 
     if line.count(')')==1 and line.count('(')==0 and laystart==True or end==True and laystart==True:
         #if it is the end of a layer
@@ -66,26 +68,111 @@ for line in inpList:
         if fnd:
             layname=fnd.group(1).replace("_","")
             names.append(layname)
-print(layoutname)
-#print(KClayers)
-print(names)
 
-print(KClayers[0])
 Layout = collections.namedtuple('Layout', ['name', 'layout_data'])
+unit = 7 #spaces for 1u cap
+def generate_filler(text, width):
+    """
+    Takes in keycode string (ie. "A", "BSPACE") and returns the same string padded with spaces as necessary
+    1 : 6,
+        1.25 : 7,
+        1.5 : 9,
+        1.75 : 11,
+        2 : 12,
+        2.25 : 13,
+        2.75 : 17,
+        3 : 18,
+        6.25 : 38
+    """
+    #Minimum size 6 units = 1u
+    #gonna be ugly hardcoded lines here
+    spaces = {
+        1 : unit,
+        1.25 : int(round(unit*1.25)),
+        1.5 : int(round(unit*1.5)),
+        1.75 : int(round(unit*1.75)),
+        2 : int(round(unit*2)),
+        2.25 : int(round(unit*2.25)),
+        2.75 : int(round(unit*2.75)),
+        3 : int(round(unit*3)),
+        6.25 : int(round(unit*6.25))
+    }
+    padded_text = text
+    keysize = spaces[width]
+    fillercount = keysize - len(text) #number of blank spaces we need.
+    if len(text) > 6:
+      padded_text = text[0:6]
+    else:
+      if fillercount != 0:
+          if fillercount % 2 == 0:
+              #if there's an even number of spaces, equally distribute spaces.
+              spaces = ' ' * int(fillercount / 2)
+              padded_text = '{padding}{text}{padding}'.format(padding=spaces, text=text)
+          else:
+              #odd number of spaces; equally distribute, but put one extra after
+              if fillercount == 1:
+                  #if only one space, glue onto the right
+                  padded_text = ' {text}'.format(text=text)
+              else:
+                  spaces = ' ' * int(fillercount / 2)
+                  padded_text = '{padding}{text}{padding} '.format(padding=spaces, text=text)
+
+    return padded_text
 
 def generate_ascii(layout, jsonfile='info.json'):
     info_data = json.load(open(jsonfile))
     layouts = info_data['layouts']
-    layoutinfo = layouts[layoutname]
-    print(layoutinfo['layout'])
-    input()
+    print(layoutname)
+    #input()
+    layoutinfo = layouts[layoutname]['layout']
     ascii = ''
-    unit = 6 #base unit = 6 spaces/chars
-    
-    return ''
+    #print(layoutinfo['layout'])
+    #input()
+    #print(layout.layout_data)
+    width = 0
+    #first generate the total length; for now we're just going to use the first layout
+    for index in range(0, len(layoutinfo)):
+        if layoutinfo[index]['y'] == 0:
+            if 'w' in layoutinfo[index].keys():
+                width += layoutinfo[index]['w']
+            else:
+                width += 1
+    #print(layoutinfo)
+    #input()
+    #print(width)
+    #print(layoutinfo['w'])
+    #input()
+
+    edge = '.' + ('-' * int(unit * width) )
+    edge += ('-' * int(width-1)) + '.\n'
+    edge2 = edge.replace('.','|')
+    ascii += edge
+    #print(ascii)
+    width_index = 0 #I REALLY DON'T LIKE THIS BUT I DON'T WANNA REWRITE?
+    for line in layout.layout_data:
+        ascii += '|' #start of keymap row
+        for text in line:
+            width = 1
+            if 'w' in layoutinfo[width_index].keys():
+              width = layoutinfo[width_index]['w']
+
+            ascii += (generate_filler(text, width) + '|')
+            width_index += 1
+            #print(line)
+            #input()
+        ascii += '\n'
+
+        #at end of keymap row, add another edge.
+        ascii += edge2
+    print(ascii)
+    return ascii
 
 with open('comment.txt', 'w', encoding='utf-8') as comment_file:
+    for custom in notdef:
+        qmk_kc2.keycodes[custom.split(' ')[1]] = custom.split(' ')[2]
     for layer_index in range(0, len(KClayers)):
+        print(layer_index)
+        print(names)
         """
         Each layer looks as thus:
         ['KC_GRV,KC_Q,KC_W,KC_E,KC_R,KC_T,KC_Y,KC_U,KC_I,KC_O,KC_P,KC_BSPC,', 'KC_LCTL,KC_A,KC_S,KC_D,KC_F,KC_G,KC_H,KC_J,KC_K,KC_L,KC_SCLN,KC_QUOT,', 'KC_LSFT,KC_Z,KC_X,KC_C,KC_V,KC_B,KC_N,KC_M,KC_COMM,KC_DOT,KC_SLSH,KC_ENT,', 'KC_ESC,KC_TAB,KC_LALT,KC_LGUI,LOWER,KC_SPC,RAISE,KC_LEFT,KC_RGHT,KC_UP,KC_DOWN']
@@ -95,7 +182,7 @@ with open('comment.txt', 'w', encoding='utf-8') as comment_file:
         """
         layer = KClayers[layer_index]
         #comment_file.write(names[layer_index] + '\n')
-        layout = Layout(names[layer_index], [])
+        layout = Layout('', [])
         for row_index in range(0, len(layer)):
             if layer[row_index].endswith(','):
                 layer[row_index] = layer[row_index][:-1]
