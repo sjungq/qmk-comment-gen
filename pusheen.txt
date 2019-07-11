@@ -1,0 +1,9 @@
+Stuff to think about because I realize making images fit is a LITTLE more complicated
+
+- Any key bigger than one unit needs an extra 'space' to account for columns
+- May need to adjust master 'unit' size based on the board's width
+- Good idea to keep track of each row's character length and, if they come up short from the board
+  width, pad them a little
+- need to either use a defaultdict to store the keycode:ascii representations orrrr yeah def just defaultdict
+  - handling any unique codes like MO(x), etc
+- add layer name in

@@ -91,11 +91,11 @@ def generate_filler(text, width):
         1.25 : int(round(unit*1.25)),
         1.5 : int(round(unit*1.5)),
         1.75 : int(round(unit*1.75)),
-        2 : int(round(unit*2)),
+        2 : int(round(unit*2)) + 1,
         2.25 : int(round(unit*2.25)),
-        2.75 : int(round(unit*2.75)),
-        3 : int(round(unit*3)),
-        6.25 : int(round(unit*6.25))
+        2.75 : int(round(unit*2.75)) + 1,
+        3 : int(round(unit*3)) + 2,
+        6.25 : int(round(unit*6.25)) + 5
     }
     padded_text = text
     keysize = spaces[width]
